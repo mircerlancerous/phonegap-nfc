@@ -1,33 +1,6 @@
 /*jshint  bitwise: false, camelcase: false, quotmark: false, unused: vars, esversion: 6, browser: true*/
 /*global cordova, console, require */
 
-function handleNfcFromIntentFilter() {
-
-    // This was historically done in cordova.addConstructor but broke with PhoneGap-2.2.0.
-    // We need to handle NFC from an Intent that launched the application, but *after*
-    // the code in the application's deviceready has run.  After upgrading to 2.2.0,
-    // addConstructor was finishing *before* deviceReady was complete and the
-    // ndef listeners had not been registered.
-    // It seems like there should be a better solution.
-    if (cordova.platformId === "android" || cordova.platformId === "windows") {
-        setTimeout(
-            function () {
-                cordova.exec(
-                    function () {
-                        console.log("Initialized the NfcPlugin");
-                    },
-                    function (reason) {
-                        console.log("Failed to initialize the NfcPlugin " + reason);
-                    },
-                    "NfcPlugin", "init", []
-                );
-            }, 10
-        );
-    }
-}
-
-document.addEventListener('deviceready', handleNfcFromIntentFilter, false);
-
 var ndef = {
 
     // see android.nfc.NdefRecord for documentation about constants
@@ -410,6 +383,22 @@ var ndef = {
 
 // nfc provides javascript wrappers to the native phonegap implementation
 var nfc = {
+	
+	initNFC: function(win,fail){
+		cordova.exec(
+            function () {
+                win("Initialized the NfcPlugin");
+            },
+            function (reason) {
+                fail("Failed to initialize the NfcPlugin " + reason);
+            },
+            "NfcPlugin", "init", []
+        );
+	},
+	
+	disableNFC: function(win,fail){
+		cordova.exec(win, fail, "NfcPlugin", "disable", []);
+	},
     
     addTagDiscoveredListener: function (callback, win, fail) {
         document.addEventListener("tag", callback, false);
