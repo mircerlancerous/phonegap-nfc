@@ -52,7 +52,10 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
     private static final String STOP_HANDOVER = "stopHandover";
     private static final String ENABLED = "enabled";
     private static final String INIT = "init";
+    private static final String DISABLE = "disable";
     private static final String SHOW_SETTINGS = "showSettings";
+    
+    private Boolean isInitialized = false;
 
     private static final String NDEF = "ndef";
     private static final String NDEF_MIME = "ndef-mime";
@@ -170,7 +173,10 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
         } else if (action.equalsIgnoreCase(INIT)) {
             init(callbackContext);
 
-        } else if (action.equalsIgnoreCase(ENABLED)) {
+        } else if (action.equalsIgnoreCase(DISABLE)) {
+            disable(callbackContext);
+
+        }  else if (action.equalsIgnoreCase(ENABLED)) {
             // status is checked before every call
             // if code made it here, NFC is enabled
             callbackContext.success(STATUS_NFC_OK);
@@ -290,11 +296,22 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
 
     private void init(CallbackContext callbackContext) {
         Log.d(TAG, "Enabling plugin " + getIntent());
+		
+		isInitialized = true;
 
         startNfc();
         if (!recycledIntent()) {
             parseMessage();
         }
+        callbackContext.success();
+    }
+
+    private void disable(CallbackContext callbackContext) {
+        Log.d(TAG, "Disabling plugin " + getIntent());
+		
+		isInitialized = false;
+		
+        stopNfc();
         callbackContext.success();
     }
 
@@ -803,7 +820,10 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
     public void onResume(boolean multitasking) {
         Log.d(TAG, "onResume " + getIntent());
         super.onResume(multitasking);
-        startNfc();
+        
+        if(isInitialized){
+        	startNfc();
+        }
     }
 
     @Override
